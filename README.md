@@ -1,7 +1,7 @@
 
-  # Greeting User
+  # pptee-frontend
 
-  This is a code bundle for Greeting User. The original project is available at https://www.figma.com/design/2LOf0fcBjh56Y4ZxdCC6zV/Greeting-User.
+  This is a code bundle for pptee-frontend. The original project is available at https://www.figma.com/design/2LOf0fcBjh56Y4ZxdCC6zV/Greeting-User.
 
   ## Running the code
 
