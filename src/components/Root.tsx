@@ -75,8 +75,8 @@ export function Root() {
           </div>
           <Button
             onClick={handleLogout}
-            variant="outline"
-            className="w-full justify-start gap-2 text-gray-400 hover:text-gray-200 border-gray-700"
+            variant="ghost"
+            className="w-full justify-start gap-2 text-gray-500 hover:text-gray-300 hover:bg-gray-800/30"
           >
             <LogOut className="w-4 h-4" />
             로그아웃

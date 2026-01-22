@@ -935,6 +935,15 @@
     border-bottom-width: 1px;
   }
 
+  .border-b-2 {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 2px;
+  }
+
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
+  }
+
   .border-blue-500\/20 {
     border-color: color-mix(in srgb, oklch(.623 .214 259.815) 20%, transparent);
   }
@@ -1749,6 +1758,18 @@
   }
 
   @media (hover: hover) {
+    .hover\:bg-gray-800\/30:hover {
+      background-color: color-mix(in srgb, oklch(.278 .033 256.848) 30%, transparent);
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-gray-800\/30:hover {
+        background-color: color-mix(in oklab, var(--color-gray-800) 30%, transparent);
+      }
+    }
+  }
+
+  @media (hover: hover) {
     .hover\:bg-gray-800\/50:hover {
       background-color: color-mix(in srgb, oklch(.278 .033 256.848) 50%, transparent);
     }
@@ -1813,6 +1834,12 @@
   @media (hover: hover) {
     .hover\:text-gray-200:hover {
       color: var(--color-gray-200);
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:text-gray-300:hover {
+      color: var(--color-gray-300);
     }
   }
 
