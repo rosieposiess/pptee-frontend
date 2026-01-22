@@ -1,17 +1,27 @@
-import { Outlet, Link, useLocation } from 'react-router';
-import { LayoutDashboard, Box, Cpu, Shield, History, Bell, HelpCircle, User } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router';
+import { LayoutDashboard, Box, Cpu, Shield, Bell, HelpCircle, User, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner@2.0.3';
 
 export function Root() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const navItems = [
     { path: '/', label: '대시보드', icon: LayoutDashboard },
     { path: '/models', label: '모델 관리', icon: Box },
-    { path: '/inference', label: '추론 실행', icon: Cpu },
     { path: '/security', label: '보안 상태', icon: Shield },
-    { path: '/history', label: '사용 이력', icon: History },
   ];
+
+  const handleLogout = () => {
+    // BACKEND CALL: cmd_logout
+    // await invoke("cmd_logout")
+    logout();
+    toast.success('로그아웃 되었습니다');
+    navigate('/login');
+  };
 
   return (
     <div className="flex h-screen bg-[#0a0e1a] text-gray-100">
@@ -24,8 +34,8 @@ export function Root() {
               <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-white">SecureLLM</h1>
-              <p className="text-xs text-gray-400">Trusted Execution</p>
+              <h1 className="font-bold text-lg text-white">PP-TEE</h1>
+              <p className="text-xs text-gray-400">Privacy Preserving TEE</p>
             </div>
           </div>
         </div>
@@ -53,7 +63,7 @@ export function Root() {
         </nav>
 
         {/* User section */}
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-gray-800 space-y-2">
           <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-800/50">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
@@ -63,6 +73,14 @@ export function Root() {
               <p className="text-xs text-gray-400">user@example.com</p>
             </div>
           </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="w-full justify-start gap-2 text-gray-400 hover:text-gray-200 border-gray-700"
+          >
+            <LogOut className="w-4 h-4" />
+            로그아웃
+          </Button>
         </div>
       </aside>
 

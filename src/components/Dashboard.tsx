@@ -84,65 +84,6 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Model Usage Distribution */}
-        <Card className="p-6 bg-[#151b2e] border-gray-800">
-          <h3 className="font-semibold mb-4">모델 사용 분포</h3>
-          <div style={{ width: '100%', height: '256px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={modelUsageData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {modelUsageData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 space-y-2">
-            {modelUsageData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-gray-300">{item.name}</span>
-                </div>
-                <span className="text-gray-400">{item.value}%</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Inference History */}
-        <Card className="p-6 bg-[#151b2e] border-gray-800">
-          <h3 className="font-semibold mb-4">추론 사용 추이</h3>
-          <div style={{ width: '100%', height: '256px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={inferenceHistory}>
-                <XAxis dataKey="date" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-      </div>
-
       {/* Recent Activities */}
       <Card className="p-6 bg-[#151b2e] border-gray-800">
         <h3 className="font-semibold mb-4">최근 활동</h3>
