@@ -1,7 +1,7 @@
 
-  # Greeting User
+  # PP-TEE
 
-  This is a code bundle for Greeting User. The original project is available at https://www.figma.com/design/2LOf0fcBjh56Y4ZxdCC6zV/Greeting-User.
+  This is a code bundle for PP-TEE. The original project is available at https://www.figma.com/design/2LOf0fcBjh56Y4ZxdCC6zV/PP-TEE.
 
   ## Running the code
 

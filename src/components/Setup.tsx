@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Shield, Lock, Server, CheckCircle, XCircle, Loader2, AlertTriangle, ArrowRight, Play } from 'lucide-react';
+import { Input } from './ui/input';
+import { Shield, Lock, Server, CheckCircle, XCircle, Loader2, AlertTriangle, ArrowRight, Play, Settings2 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { useAuth } from '../contexts/AuthContext';
 
-type SetupStatus = 'idle' | 'checking-device' | 'device-ready' | 'device-failed' | 'checking-cloud' | 'cloud-ready' | 'cloud-failed' | 'preparing' | 'completed';
+type SetupStatus = 'config' | 'idle' | 'checking-device' | 'device-ready' | 'device-failed' | 'checking-cloud' | 'cloud-ready' | 'cloud-failed' | 'preparing' | 'completed';
 
 const setupSteps = [
   { id: 1, title: 'Device TEE 확인', description: '로컬 디바이스의 TEE 환경을 검사합니다' },
@@ -18,14 +19,60 @@ const setupSteps = [
 
 export function Setup() {
   const { teeStatus, setTeeReady } = useAuth();
-  const [setupStatus, setSetupStatus] = useState<SetupStatus>('idle');
+  const [setupStatus, setSetupStatus] = useState<SetupStatus>('config');
   const [deviceTeeReady, setDeviceTeeReady] = useState(false);
   const [cloudTeeReady, setCloudTeeReady] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [deviceCapability, setDeviceCapability] = useState<any>(null);
   const [cloudCapability, setCloudCapability] = useState<any>(null);
+  
+  // Server configuration
+  const [serverIp, setServerIp] = useState('192.168.1.100');
+  const [serverPort, setServerPort] = useState('8443');
+  const [isConfigured, setIsConfigured] = useState(false);
 
   const isCompleted = teeStatus === 'ready';
+
+  // TEE가 이미 완료된 경우 상태 복원
+  useEffect(() => {
+    if (teeStatus === 'ready') {
+      setSetupStatus('completed');
+      setCurrentStep(5);
+      setDeviceTeeReady(true);
+      setCloudTeeReady(true);
+      setIsConfigured(true);
+      // localStorage에서 복원
+      const savedDeviceCap = localStorage.getItem('pp-tee-device-cap');
+      const savedCloudCap = localStorage.getItem('pp-tee-cloud-cap');
+      const savedServerIp = localStorage.getItem('pp-tee-server-ip');
+      const savedServerPort = localStorage.getItem('pp-tee-server-port');
+      
+      if (savedDeviceCap) setDeviceCapability(JSON.parse(savedDeviceCap));
+      if (savedCloudCap) setCloudCapability(JSON.parse(savedCloudCap));
+      if (savedServerIp) setServerIp(savedServerIp);
+      if (savedServerPort) setServerPort(savedServerPort);
+    }
+  }, [teeStatus]);
+
+  const handleConfigureServer = () => {
+    if (!serverIp || !serverPort) {
+      toast.error('서버 IP와 포트를 모두 입력해주세요');
+      return;
+    }
+    
+    // 간단한 IP 검증
+    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipPattern.test(serverIp)) {
+      toast.error('올바른 IP 주소 형식을 입력해주세요');
+      return;
+    }
+
+    setIsConfigured(true);
+    setSetupStatus('idle');
+    localStorage.setItem('pp-tee-server-ip', serverIp);
+    localStorage.setItem('pp-tee-server-port', serverPort);
+    toast.success('서버 설정이 완료되었습니다');
+  };
 
   const handleStartSetup = async () => {
     // Step 1: Device TEE 확인
@@ -37,14 +84,16 @@ export function Setup() {
     // 응답 예시: { sgx: true, sev: false, tdx: true, notes: "Intel SGX supported" }
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const deviceSupported = Math.random() > 0.1;
+    const deviceSupported = Math.random() > 0.05;
     if (!deviceSupported) {
       setSetupStatus('device-failed');
       toast.error('Device TEE 환경이 지원되지 않습니다');
       return;
     }
 
-    setDeviceCapability({ sgx: true, sev: false, tdx: true, notes: 'Intel SGX supported' });
+    const deviceCap = { sgx: true, sev: false, tdx: true, notes: 'Intel SGX supported' };
+    setDeviceCapability(deviceCap);
+    localStorage.setItem('pp-tee-device-cap', JSON.stringify(deviceCap));
 
     // BACKEND CALL 2: cmd_run_dummy_tee_test (Device)
     // const testResult = await invoke("cmd_run_dummy_tee_test", { tee_type: "sgx" })
@@ -62,18 +111,20 @@ export function Setup() {
     setCurrentStep(3);
 
     // BACKEND CALL 3: cmd_check_cloud_capability (새로운 커맨드)
-    // const cloudCap = await invoke("cmd_check_cloud_capability")
+    // const cloudCap = await invoke("cmd_check_cloud_capability", { server_ip: serverIp, server_port: serverPort })
     // 응답 예시: { sgx: true, sev: true, tdx: false, notes: "AMD SEV supported" }
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const cloudSupported = Math.random() > 0.1;
+    const cloudSupported = Math.random() > 0.05;
     if (!cloudSupported) {
       setSetupStatus('cloud-failed');
       toast.error('Cloud TEE 환경이 지원되지 않습니다');
       return;
     }
 
-    setCloudCapability({ sgx: true, sev: true, tdx: false, notes: 'AMD SEV supported' });
+    const cloudCap = { sgx: true, sev: true, tdx: false, notes: 'AMD SEV supported' };
+    setCloudCapability(cloudCap);
+    localStorage.setItem('pp-tee-cloud-cap', JSON.stringify(cloudCap));
 
     // BACKEND CALL 4: cmd_run_dummy_tee_test (Cloud)
     // const cloudTestResult = await invoke("cmd_run_dummy_tee_test", { tee_type: "sev" })
@@ -106,6 +157,89 @@ export function Setup() {
     return 'pending';
   };
 
+  // 서버 설정 화면
+  if (setupStatus === 'config' && !isCompleted) {
+    return (
+      <div className="space-y-6 text-gray-100">
+        {/* Header */}
+        <div>
+          <h2 className="text-2xl font-bold">TEE 환경 구축</h2>
+          <p className="text-gray-400 mt-1">
+            Device와 Cloud의 Trusted Execution Environment를 설정합니다
+          </p>
+        </div>
+
+        {/* Server Configuration */}
+        <Card className="p-8 bg-[#151b2e] border-gray-800 max-w-2xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+              <Settings2 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">서버 설정</h3>
+              <p className="text-sm text-gray-400">TEE 환경을 구축할 클라우드 서버를 설정하세요</p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                서버 IP 주소
+              </label>
+              <Input
+                type="text"
+                value={serverIp}
+                onChange={(e) => setServerIp(e.target.value)}
+                placeholder="예: 192.168.1.100"
+                className="bg-gray-800/50 border-gray-700 text-gray-100"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                TEE 환경이 구축될 클라우드 서버의 IP 주소를 입력하세요
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                포트 번호
+              </label>
+              <Input
+                type="text"
+                value={serverPort}
+                onChange={(e) => setServerPort(e.target.value)}
+                placeholder="예: 8443"
+                className="bg-gray-800/50 border-gray-700 text-gray-100"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                서버 연결에 사용할 포트 번호를 입력하세요
+              </p>
+            </div>
+
+            <div className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-blue-400 mt-0.5" />
+                <div className="text-sm text-blue-300">
+                  <p className="font-medium mb-1">보안 연결 안내</p>
+                  <p className="text-blue-400/80">
+                    모든 데이터는 TEE 환경 내에서 암호화되어 전송됩니다. 
+                    서버 IP는 신뢰할 수 있는 클라우드 인프라의 주소를 입력해주세요.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleConfigureServer}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-lg py-6"
+            >
+              <Settings2 className="w-5 h-5 mr-2" />
+              서버 설정 완료
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 text-gray-100">
       {/* Header */}
@@ -115,6 +249,34 @@ export function Setup() {
           Device와 Cloud의 Trusted Execution Environment를 설정합니다
         </p>
       </div>
+
+      {/* Server Info */}
+      {isConfigured && (
+        <Card className="p-4 bg-[#151b2e] border-gray-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Server className="w-5 h-5 text-purple-400" />
+              <div>
+                <p className="text-sm font-medium">연결된 서버</p>
+                <p className="text-xs text-gray-400">{serverIp}:{serverPort}</p>
+              </div>
+            </div>
+            {!isCompleted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSetupStatus('config');
+                  setIsConfigured(false);
+                }}
+                className="text-gray-400 hover:text-gray-200"
+              >
+                변경
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Overall Status */}
       <Card className="p-6 bg-[#151b2e] border-gray-800">
