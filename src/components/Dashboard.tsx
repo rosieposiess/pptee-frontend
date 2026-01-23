@@ -1,6 +1,7 @@
 import { Card } from './ui/card';
 import { Activity, Database, Lock, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { useAuth } from '../contexts/AuthContext';
 
 const modelUsageData = [
   { name: 'GPT-4', value: 45, color: '#3b82f6' },
