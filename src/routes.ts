@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { Root } from "./components/Root";
 import { Home } from "./components/Home";
+import { Setup } from "./components/Setup";
 import { Models } from "./components/Models";
 import { Inference } from "./components/Inference";
 import { Security } from "./components/Security";
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, Component: Home },
+      { path: "setup", Component: Setup },
       { path: "models", Component: Models },
       { path: "inference/:modelId", Component: Inference },
       { path: "security", Component: Security },

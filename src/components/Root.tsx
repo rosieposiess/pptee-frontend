@@ -1,10 +1,10 @@
 import { Outlet, NavLink, useLocation } from 'react-router';
 import { Button } from './ui/button';
-import { Home, Box, Shield, Settings, LogOut, Bell, HelpCircle, Brain } from 'lucide-react';
+import { Home, Box, Shield, Settings, LogOut, Bell, HelpCircle, Brain, Cog } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function Root() {
-  const { logout, teeInitialized } = useAuth();
+  const { logout, teeStatus } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -12,6 +12,7 @@ export function Root() {
 
   const navItems = [
     { to: '/', icon: Home, label: '홈', end: true },
+    { to: '/setup', icon: Cog, label: '환경 구축' },
     { to: '/models', icon: Box, label: '모델 관리', requireTee: true },
     { to: '/security', icon: Shield, label: '보안 상태' },
     { to: '/settings', icon: Settings, label: '설정' },
@@ -38,7 +39,7 @@ export function Root() {
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isDisabled = item.requireTee && !teeInitialized;
+            const isDisabled = item.requireTee && teeStatus !== 'ready';
             
             if (isDisabled) {
               return (
