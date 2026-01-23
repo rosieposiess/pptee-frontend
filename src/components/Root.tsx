@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useLocation } from 'react-router';
 import { Button } from './ui/button';
-import { LayoutDashboard, Box, Brain, Shield, LogOut, Settings, Bell, HelpCircle } from 'lucide-react';
+import { Home, Box, Shield, Settings, LogOut, Bell, HelpCircle, Brain } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function Root() {
@@ -11,10 +11,10 @@ export function Root() {
   };
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: '대시보드', end: true },
-    { to: '/setup', icon: Settings, label: '환경 구축' },
+    { to: '/', icon: Home, label: '홈', end: true },
     { to: '/models', icon: Box, label: '모델 관리', requireTee: true },
     { to: '/security', icon: Shield, label: '보안 상태' },
+    { to: '/settings', icon: Settings, label: '설정' },
   ];
 
   return (

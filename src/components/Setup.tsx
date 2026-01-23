@@ -152,13 +152,15 @@ export function Setup() {
   };
 
   const getStepStatus = (stepId: number) => {
+    // 완료 상태일 때는 모든 단계를 completed로
+    if (setupStatus === 'completed') return 'completed';
     if (currentStep > stepId) return 'completed';
     if (currentStep === stepId) return 'active';
     return 'pending';
   };
 
   // 서버 설정 화면
-  if (setupStatus === 'config' && !isCompleted) {
+  if (setupStatus === 'config') {
     return (
       <div className="space-y-6 text-gray-100">
         {/* Header */}
@@ -234,6 +236,17 @@ export function Setup() {
               <Settings2 className="w-5 h-5 mr-2" />
               서버 설정 완료
             </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSetupStatus('idle');
+                setIsConfigured(false);
+              }}
+              className="w-full border-gray-700 text-gray-400 hover:text-gray-200"
+            >
+              닫기
+            </Button>
           </div>
         </Card>
       </div>
@@ -261,19 +274,17 @@ export function Setup() {
                 <p className="text-xs text-gray-400">{serverIp}:{serverPort}</p>
               </div>
             </div>
-            {!isCompleted && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSetupStatus('config');
-                  setIsConfigured(false);
-                }}
-                className="text-gray-400 hover:text-gray-200"
-              >
-                변경
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSetupStatus('config');
+                setIsConfigured(false);
+              }}
+              className="text-gray-400 hover:text-blue-400 hover:bg-blue-900/20"
+            >
+              변경
+            </Button>
           </div>
         </Card>
       )}
@@ -382,12 +393,10 @@ export function Setup() {
                   )}
                 </div>
                 {index < setupSteps.length - 1 && (
-                  <div className="ml-9 my-2">
-                    <ArrowRight
-                      className={`w-5 h-5 ${
-                        isCompleted ? 'text-green-400' : 'text-gray-600'
-                      }`}
-                    />
+                  <div className="flex justify-center my-3">
+                    <div className={`w-0.5 h-6 ${
+                      isCompleted ? 'bg-green-400' : 'bg-gray-700'
+                    }`} />
                   </div>
                 )}
               </div>

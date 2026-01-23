@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { CheckCircle, XCircle, Cpu, Shield, AlertTriangle, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, Cpu, Shield, AlertTriangle, Settings, Server } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Model {
@@ -39,6 +39,10 @@ const mockModels: Model[] = [
 
 export function Models() {
   const { teeInitialized, teeStatus } = useAuth();
+  
+  // localStorage에서 서버 정보 가져오기
+  const serverIp = localStorage.getItem('pp-tee-server-ip') || 'N/A';
+  const serverPort = localStorage.getItem('pp-tee-server-port') || 'N/A';
 
   // TEE가 준비되지 않았을 때 안내 화면
   if (!teeInitialized) {
@@ -132,6 +136,17 @@ export function Models() {
             <CheckCircle className="w-3 h-3 mr-1" />
             구축 완료
           </Badge>
+        </div>
+      </Card>
+
+      {/* Server Info */}
+      <Card className="p-6 bg-[#151b2e] border-gray-800">
+        <div className="flex items-center gap-4">
+          <Server className="w-5 h-5 text-purple-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">연결된 서버</p>
+            <p className="text-xs text-gray-400">{serverIp}:{serverPort}</p>
+          </div>
         </div>
       </Card>
 
