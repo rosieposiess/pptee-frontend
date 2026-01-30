@@ -73,9 +73,7 @@ export function Inference() {
     localStorage.setItem('pp-tee-messages', JSON.stringify(messagesByModel));
   }, [messagesByModel]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, processingSteps]);
+  // 자동 스크롤 제거 - 사용자가 위로 스크롤하면 방해하지 않음
 
   const handleSaveSettings = () => {
     toast.success('설정이 저장되었습니다!');
@@ -105,6 +103,33 @@ export function Inference() {
       'CheckCircle': CheckCircle,
     };
     return iconMap[iconName] || User;
+  };
+
+  // 날짜 변경 확인 함수
+  const shouldShowDateSeparator = (currentMessage: Message, prevMessage?: Message) => {
+    if (!prevMessage) return true; // 첫 메시지는 항상 날짜 표시
+    
+    const currentDate = currentMessage.timestamp.toDateString();
+    const prevDate = prevMessage.timestamp.toDateString();
+    
+    return currentDate !== prevDate;
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const dateStr = date.toDateString();
+    
+    if (dateStr === today.toDateString()) {
+      return '오늘';
+    } else if (dateStr === yesterday.toDateString()) {
+      return '어제';
+    } else {
+      return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
   };
 
   const inferenceSteps: InferenceStep[] = [
@@ -427,93 +452,107 @@ export function Inference() {
         )}
 
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-3xl ${message.role === 'user' ? 'w-auto' : 'w-full'}`}>
-              <div className="flex items-start gap-3">
-                {message.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <div className={`p-4 rounded-lg ${
-                    message.role === 'user' 
-                      ? 'bg-blue-600/20 border border-blue-500/30' 
-                      : 'bg-[#1e2840] border border-gray-700'
-                  }`}>
-                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                    <span>{message.timestamp.toLocaleTimeString('ko-KR')}</span>
-                    {message.role === 'assistant' && message.processingLogs && (
-                      <>
-                        <span>•</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setExpandedMessageLog(expandedMessageLog === index ? null : index)}
-                          className="h-auto py-0 px-2 text-xs text-blue-400 hover:text-blue-300"
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          Multi-TEE 처리 과정 자세히 보기
-                          {expandedMessageLog === index ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
-                        </Button>
-                      </>
+          <div key={index}>
+            {/* 날짜 구분선 */}
+            {shouldShowDateSeparator(message, index > 0 ? messages[index - 1] : undefined) && (
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-gray-700/50"></div>
+                <span className="text-xs text-gray-500 px-3 py-1 bg-gray-800/50 rounded-full">
+                  {formatDate(message.timestamp)}
+                </span>
+                <div className="flex-1 h-px bg-gray-700/50"></div>
+              </div>
+            )}
+
+            {/* 메시지 */}
+            <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-3xl ${message.role === 'user' ? 'w-auto' : 'w-full'}`}>
+                <div className="flex items-start gap-3">
+                  {message.role === 'assistant' && (
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className={`p-4 rounded-lg ${
+                      message.role === 'user' 
+                        ? 'bg-blue-600/20 border border-blue-500/30' 
+                        : 'bg-[#1e2840] border border-gray-700'
+                    }`}>
+                      <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                      <span>{message.timestamp.toLocaleTimeString('ko-KR')}</span>
+                      {message.role === 'assistant' && message.processingLogs && (
+                        <>
+                          <span>•</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setExpandedMessageLog(expandedMessageLog === index ? null : index)}
+                            className="h-auto py-0 px-2 text-xs text-blue-400 hover:text-blue-300"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Multi-TEE 처리 과정 자세히 보기
+                            {expandedMessageLog === index ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Processing Logs Detail */}
+                    {message.role === 'assistant' && message.processingLogs && expandedMessageLog === index && (
+                      <Card className="mt-3 p-4 bg-black/30 border-gray-700">
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-blue-400" />
+                          Multi-TEE 보안 처리 과정
+                        </h4>
+                        <div className="space-y-3">
+                          {message.processingLogs.map((step, stepIdx) => {
+                            const StepIcon = getIconComponent(step.icon);
+                            return (
+                              <div key={stepIdx} className="border-l-2 border-green-500/30 pl-4 py-2">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <StepIcon className="w-4 h-4 text-green-400" />
+                                  <span className="text-sm font-medium text-green-400">{step.label}</span>
+                                  <Badge className="bg-green-600/20 text-green-400 text-xs">완료</Badge>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-2">{step.description}</p>
+                                {step.detailLogs.length > 0 && (
+                                  <div className="mt-2 p-2 bg-black/50 rounded border border-gray-800 font-mono text-xs space-y-0.5">
+                                    {step.detailLogs.map((log, logIdx) => (
+                                      <div key={logIdx} className={`
+                                        ${log.includes('[ERROR]') ? 'text-red-400' : ''}
+                                        ${log.includes('[SUCCESS]') ? 'text-green-400' : ''}
+                                        ${log.includes('[ENCRYPTED]') || log.includes('[DECRYPTED]') ? 'text-yellow-400' : ''}
+                                        ${log.includes('[INFO]') ? 'text-gray-400' : ''}
+                                        ${log.includes('[DATA]') || log.includes('[SEND]') || log.includes('[RECV]') ? 'text-cyan-400' : ''}
+                                      `}>
+                                        {log}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {step.encryptedData && (
+                                  <div className="mt-2 p-2 bg-yellow-600/10 border border-yellow-500/20 rounded">
+                                    <p className="text-xs text-yellow-400 font-mono break-all">
+                                      🔐 {step.encryptedData}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
                     )}
                   </div>
-
-                  {/* Processing Logs Detail */}
-                  {message.role === 'assistant' && message.processingLogs && expandedMessageLog === index && (
-                    <Card className="mt-3 p-4 bg-black/30 border-gray-700">
-                      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-blue-400" />
-                        Multi-TEE 보안 처리 과정
-                      </h4>
-                      <div className="space-y-3">
-                        {message.processingLogs.map((step, stepIdx) => {
-                          const StepIcon = getIconComponent(step.icon);
-                          return (
-                            <div key={stepIdx} className="border-l-2 border-green-500/30 pl-4 py-2">
-                              <div className="flex items-center gap-2 mb-2">
-                                <StepIcon className="w-4 h-4 text-green-400" />
-                                <span className="text-sm font-medium text-green-400">{step.label}</span>
-                                <Badge className="bg-green-600/20 text-green-400 text-xs">완료</Badge>
-                              </div>
-                              <p className="text-xs text-gray-400 mb-2">{step.description}</p>
-                              {step.detailLogs.length > 0 && (
-                                <div className="mt-2 p-2 bg-black/50 rounded border border-gray-800 font-mono text-xs space-y-0.5">
-                                  {step.detailLogs.map((log, logIdx) => (
-                                    <div key={logIdx} className={`
-                                      ${log.includes('[ERROR]') ? 'text-red-400' : ''}
-                                      ${log.includes('[SUCCESS]') ? 'text-green-400' : ''}
-                                      ${log.includes('[ENCRYPTED]') || log.includes('[DECRYPTED]') ? 'text-yellow-400' : ''}
-                                      ${log.includes('[INFO]') ? 'text-gray-400' : ''}
-                                      ${log.includes('[DATA]') || log.includes('[SEND]') || log.includes('[RECV]') ? 'text-cyan-400' : ''}
-                                    `}>
-                                      {log}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              {step.encryptedData && (
-                                <div className="mt-2 p-2 bg-yellow-600/10 border border-yellow-500/20 rounded">
-                                  <p className="text-xs text-yellow-400 font-mono break-all">
-                                    🔐 {step.encryptedData}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </Card>
+                  {message.role === 'user' && (
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5" />
+                    </div>
                   )}
                 </div>
-                {message.role === 'user' && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5" />
-                  </div>
-                )}
               </div>
             </div>
           </div>

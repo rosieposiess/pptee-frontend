@@ -563,6 +563,10 @@
     margin-block: calc(var(--spacing) * 3);
   }
 
+  .my-6 {
+    margin-block: calc(var(--spacing) * 6);
+  }
+
   .mt-0\.5 {
     margin-top: calc(var(--spacing) * .5);
   }
@@ -739,6 +743,10 @@
 
   .h-full {
     height: 100%;
+  }
+
+  .h-px {
+    height: 1px;
   }
 
   .h-screen {
@@ -1415,6 +1423,16 @@
   @supports (color: color-mix(in lab, red, red)) {
     .bg-gray-700\/30 {
       background-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);
+    }
+  }
+
+  .bg-gray-700\/50 {
+    background-color: color-mix(in srgb, oklch(.373 .034 259.733) 50%, transparent);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-gray-700\/50 {
+      background-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);
     }
   }
 
